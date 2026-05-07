@@ -4,6 +4,16 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Finanzas Personales</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Finanzas"/>
+<meta name="theme-color" content="#b07d2a"/>
+<link rel="apple-touch-icon" href="icons/icon-152x152.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png"/>
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -672,6 +682,40 @@ function deleteDebt(id){
 
 // ======== INIT ========
 renderDashboard();
+
+// ======== PWA: REGISTER SERVICE WORKER ========
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// Mostrar botón de instalación cuando el navegador lo permita
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Mostrar banner suave
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    background:#b07d2a;color:#fff;padding:10px 20px;border-radius:30px;
+    font-size:13px;font-weight:500;cursor:pointer;z-index:999;
+    box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;gap:8px;
+    font-family:'DM Sans',sans-serif;white-space:nowrap
+  `;
+  banner.innerHTML = '📲 Instalar app';
+  banner.onclick = () => {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; banner.remove(); });
+  };
+  document.body.appendChild(banner);
+  setTimeout(() => { if(banner.parentNode) banner.style.opacity='0'; banner.style.transition='opacity .5s'; setTimeout(()=>banner.remove(),600) }, 12000);
+});
+
 </script>
 </body>
 </html>
